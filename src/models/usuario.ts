@@ -2,28 +2,29 @@
 import mongoose, { Schema, model, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-//creo la inerfaz de usuario que utilizaré como esquema de mongoose
+// interfaz
 export interface IUsuario {
     _id: Types.ObjectId;
     username: string;
     gmail: string;
     password: string;
     birthday: Date;
+    role: 'user' | 'admin'; // 👈 añadimos esto
     comparePassword(candidatePassword: string): Promise<boolean>;
     isModified(path: string): boolean;
-    }
-
-//creo el esquema de usuario y si nos fijamos, el atributo id no es obligatorio ya que mongoose lo crea automáticamente
-const usuarioSchema = new Schema<IUsuario>({
+  }
+  
+  // esquema
+  const usuarioSchema = new Schema<IUsuario>({
     username: { type: String, required: true, unique: true },
     gmail: { type: String, required: true, unique: true },
-    //pone unique para que no se repita el correo ni el username entre todos los usuarios de la base de datos
     password: { type: String, required: true },
     birthday: { type: Date, required: true },
-}, {
+    role: { type: String, enum: ['user', 'admin'], default: 'user' }, // 👈 añadido
+  }, {
     timestamps: false,
     versionKey: false
-});
+  });
 
 
 

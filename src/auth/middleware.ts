@@ -55,3 +55,13 @@ export function authenticateRefreshToken(req: Request, res: Response, next: Next
     return res.status(500).json({ error: "Error interno en la verificación del refresh token" });
   }
 }
+
+export function authorizeAdmin(req: Request, res: Response, next: NextFunction) {
+  const user = (req as any).user;
+
+  if (!user || !user.payload || user.payload.role !== 'admin') {
+    return res.status(403).json({ error: "Acceso denegado: se requiere rol de administrador" });
+  }
+
+  next();
+}
