@@ -16,8 +16,8 @@ export async function createUser(req: Request, res: Response): Promise<Response>
     return res.status(400).json({ errors: errors.array() });
   }
   try {
-    const { username, gmail, password, birthday, role } = req.body as IUsuario;
-    const newUser: Partial<IUsuario> = { username, gmail, password, birthday, role };
+    const { username, gmail, password, birthday } = req.body as IUsuario;
+    const newUser: Partial<IUsuario> = { username, gmail, password, birthday };
     const user = await userService.createUser(newUser);
 
     return res.status(201).json({

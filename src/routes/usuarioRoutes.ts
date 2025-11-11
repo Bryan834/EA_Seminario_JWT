@@ -1,17 +1,14 @@
+
 import { Router } from 'express';
 import * as usuarioController from '../controller/usuarioController';
-import { authenticateToken, authenticateRefreshToken, authorizeAdmin } from '../auth/middleware';
+import { authenticateToken, authenticateRefreshToken } from '../auth/middleware';
 
 const router = Router();
+
 
 /**
  * @swagger
  * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
  *   schemas:
  *     Usuario:
  *       type: object
@@ -19,6 +16,8 @@ const router = Router();
  *         - username
  *         - gmail
  *         - password
+ *         - birthday
+ *         - rol
  *       properties:
  *         id:
  *           type: string
@@ -32,17 +31,22 @@ const router = Router();
  *         birthday:
  *           type: string
  *           format: date
- *         role:
+ *         rol:
  *           type: string
- *           enum: [user, admin]
  *       example:
  *         username: nombreUsuario
  *         gmail: primeraParteCorreo@example.com
  *         password: 123456
  *         birthday: 2000-05-21
  *         role: user
+ *       securitySchemes:
+ *         bearerAuth:
+ *          type: http
+ *          scheme: bearer
+ *          bearerFormat: JWT
  */
 
+/**
 /**
  * @swagger
  * /user/:
@@ -65,6 +69,7 @@ const router = Router();
  */
 router.post('/', usuarioController.createUser);
 
+
 /**
  * @swagger
  * /user/:
@@ -77,9 +82,7 @@ router.post('/', usuarioController.createUser);
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Usuario'
+ *               $ref: '#/components/schemas/Usuario'
  */
 router.get('/', usuarioController.getAllUsers);
 
@@ -107,20 +110,20 @@ router.get('/', usuarioController.getAllUsers);
 router.get('/:id', usuarioController.getUserById);
 
 /**
+/**
  * @swagger
  * /user/{username}:
  *   put:
- *     summary: Actualizar un usuario por nombre
+ *     summary: Actualizar un usuario por id
  *     tags: [Usuarios]
  *     security:
- *       - bearerAuth: []
+ *      -  bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: username
  *         schema:
  *           type: string
  *         required: true
- *         description: Nombre de usuario a actualizar
  *     requestBody:
  *       required: true
  *       content:
@@ -134,60 +137,77 @@ router.get('/:id', usuarioController.getUserById);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Usuario'
+ *      
  */
-router.put('/:username', authenticateToken, usuarioController.updateUserByUsername);
+router.put('/:id', authenticateToken, usuarioController.updateUserById);
 
+/**
 /**
  * @swagger
  * /user/{username}:
- *   delete:
- *     summary: Eliminar un usuario por nombre (solo admin)
+ *   put:
+ *     summary: Actualizar un usuario por nombre
  *     tags: [Usuarios]
  *     security:
- *       - bearerAuth: []
+ *      -  bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: username
  *         schema:
  *           type: string
  *         required: true
- *         description: Nombre de usuario a eliminar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Usuario'
  *     responses:
  *       200:
- *         description: Usuario eliminado correctamente
+ *         description: Usuario actualizado
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Usuario'
- *       403:
- *         description: Acceso denegado (no admin)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Acceso denegado: se requiere rol de administrador"
- *       401:
- *         description: Token requerido
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Token requerido"
+ *      
  */
-router.delete('/:username', authenticateToken, authorizeAdmin, usuarioController.deleteUserByUsername);
+router.put('/:username', authenticateToken, usuarioController.updateUserByUsername);
+
+
+
+/**
+ * @swagger
+ * /user/{id}:
+ *   delete:
+ *     summary: Eliminar un usuario por id
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: [] 
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del usuario
+ *     responses:
+ *       200:
+ *         description: Usuario eliminado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Usuario'
+ */
+router.delete('/:id', authenticateToken, usuarioController.deleteUserById);
+
 
 /**
  * @swagger
  * /user/login:
  *   post:
  *     summary: Login de usuario
- *     tags: [Usuarios]
+ *     tags:
+ *       - Usuarios
  *     requestBody:
  *       required: true
  *       content:
@@ -200,7 +220,7 @@ router.delete('/:username', authenticateToken, authorizeAdmin, usuarioController
  *             properties:
  *               username:
  *                 type: string
- *                 example: Bryan
+ *                 example: ejemplo
  *               password:
  *                 type: string
  *                 example: 123456
@@ -218,41 +238,28 @@ router.delete('/:username', authenticateToken, authorizeAdmin, usuarioController
  *                 token:
  *                   type: string
  *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 refreshToken:
- *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *       401:
  *         description: Credenciales inválidas
  */
 router.post('/login', usuarioController.login);
+
 
 /**
  * @swagger
  * /user/refresh:
  *   post:
  *     summary: Refrescar token de acceso
- *     tags: [Usuarios]
- *     security:
- *       - bearerAuth: []
+ *     tags:
+ *       - Usuarios
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - userId
- *               - refreshToken
- *             properties:
- *               userId:
- *                 type: string
- *                 example: 6912467463bc2a8bcd5060bb
- *               refreshToken:
- *                 type: string
- *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *     responses:
  *       200:
- *         description: Token renovado exitosamente
+ *         description: Token renovado exitosamente, retorna un nuevo token JWT
  *         content:
  *           application/json:
  *             schema:
@@ -261,12 +268,10 @@ router.post('/login', usuarioController.login);
  *                 message:
  *                   type: string
  *                   example: Token renovado correctamente
- *                 token:
- *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *       401:
  *         description: No se pudo refrescar el token (token inválido o expirado)
  */
-router.post('/refresh', authenticateRefreshToken, usuarioController.refreshAccessToken);
+router.post('/refresh',authenticateRefreshToken, usuarioController.refreshAccessToken);
+
 
 export default router;

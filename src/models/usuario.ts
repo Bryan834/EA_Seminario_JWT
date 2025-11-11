@@ -9,7 +9,7 @@ export interface IUsuario {
     gmail: string;
     password: string;
     birthday: Date;
-    role: 'user' | 'admin'; // 👈 añadimos esto
+    role: string;
     comparePassword(candidatePassword: string): Promise<boolean>;
     isModified(path: string): boolean;
   }
@@ -20,7 +20,7 @@ export interface IUsuario {
     gmail: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     birthday: { type: Date, required: true },
-    role: { type: String, enum: ['user', 'admin'], default: 'user' }, // 👈 añadido
+    role: { type: String, required:true, enum: ['user', 'admin'], default: 'user' }, 
   }, {
     timestamps: false,
     versionKey: false
